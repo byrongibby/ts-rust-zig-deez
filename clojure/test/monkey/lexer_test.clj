@@ -101,7 +101,7 @@
                       [(:not-eq token) "!="]
                       [(:int token) "9"]
                       [(:semicolon token) ";"]
-                      [(:eof token) ""]])
+                      [(:eof token) (str (char 0))]])
           tokens (loop [tokens (rest (iterate next-token (lexer input)))
                         result []]
                    (if (= (get-in (first tokens) [:token :type]) (:eof token))
