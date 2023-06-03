@@ -1,23 +1,23 @@
 (ns monkey.lexer
   (:require [monkey.token :refer [token new-token]]))
 
-(defn letter? [ch]
+(defn- letter? [ch]
   (or (Character/isLetter ch) (= ch \_)))
 
-(defn digit? [ch]
+(defn- digit? [ch]
   (Character/isDigit ch))
 
-(defn whitespace? [ch]
+(defn- whitespace? [ch]
   (Character/isWhitespace ch))
 
 (defrecord Lexer [input position read-position ch])
 
-(defn peek-char [l]
+(defn- peek-char [l]
   (if (>= (:read-position l) (count (:input l)))
     (char 0)
     (nth (:input l) (:read-position l))))
 
-(defn read-char 
+(defn- read-char 
   ([l]
    (-> (if (>= (:read-position l) (count (:input l)))
          (assoc l :ch (char 0))
@@ -28,17 +28,17 @@
    (-> (read-char l)
        (assoc :token (new-token type (str (:ch l))))))) 
 
-(defn skip-whitespace [l]
+(defn- skip-whitespace [l]
   (if (whitespace? (:ch l))
     (skip-whitespace (read-char l))
     l))
 
-(defn read-nchar [l n type]
+(defn- read-nchar [l n type]
   (let [l (last (take (inc n) (iterate read-char l)))
         literal (subs (:input l) (- (:position l) n) (:position l))]
     (assoc l :token (new-token type literal))))
 
-(defn read-identifier [l]
+(defn- read-identifier [l]
   (if (letter? (:ch l))
     (-> (read-char l)
         (update :start #(or % (:position l)))
@@ -48,7 +48,7 @@
       (-> (dissoc l :start)
           (assoc :token (new-token type literal))))))
 
-(defn read-number [l]
+(defn- read-number [l]
   (if (digit? (:ch l))
     (-> (read-char l)
         (update :start #(or % (:position l)))
