@@ -3,7 +3,7 @@
             [monkey.lexer :as lex]
             [monkey.token :refer [token]]))
 
-(defrecord Parser [lexer current-token peek-token])
+(defrecord Parser [lexer current-token peek-token errors])
 
 (defn next-token [parser]
   (let [lexer (lex/next-token (:lexer parser))]
@@ -18,6 +18,13 @@
 (defn peek-token= [parser type]
   (= (get-in parser [:peek-token :type]) type))
 
+(defn append-error [parser expected-type]
+  (let [observed-type (get-in parser [:peek-token :type])
+        error (format "expected next token to be %s, got %s instead"
+                      expected-type
+                      observed-type)]
+    (update parser :errors conj error)))
+
 (defn parse-let-stmt [parser]
   (let [stmt (ast/let-statement (:current-token parser))]
     (if (peek-token= parser (:ident token))
@@ -31,8 +38,8 @@
                   (drop-while #(not (curr-token= % (:semicolon token))))
                   first)
              stmt])
-          [parser nil]))
-      [parser nil])))
+          [(append-error parser (:assign token)) nil]))
+      [(append-error parser (:ident token)) nil])))
 
 (defn parse-stmt [parser]
   (condp = (get-in parser [:current-token :type])
@@ -40,7 +47,7 @@
     [parser nil]))
 
 (defn parser [lexer]
-  (-> (->Parser lexer nil nil)
+  (-> (->Parser lexer nil nil [])
       next-token
       next-token))
 
@@ -51,4 +58,5 @@
       (let [[parser stmt] (parse-stmt parser)]
         (recur (next-token parser)
                (update program :statements conj stmt)))
-      (update program :statements #(remove nil? %)))))
+      [parser
+       (update program :statements #(remove nil? %))])))

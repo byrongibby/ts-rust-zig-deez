@@ -11,7 +11,11 @@
               let y = 10;
               let foobar = 838383;
               "
-        program (parse-program (parser (lexer input)))]
+        [p program] (parse-program (parser (lexer input)))]
+    (when (not= 0 (count (:errors p)))
+      (throw (ex-info (format "Parser has %d errors." (count (:errors p)))
+                      (zipmap (map #(keyword (str "parser-error-" %)) (iterate inc 1))
+                              (:errors p)))))
     (testing "program returns non-nil value" 
       (is program))
     (testing "program contains 3 statements" 
