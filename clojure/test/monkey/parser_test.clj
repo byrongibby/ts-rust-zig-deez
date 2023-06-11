@@ -5,7 +5,6 @@
             [monkey.parser :refer [parser parse-program]])
   (:import [monkey.ast LetStatement]))
 
-
 (deftest parser-let-statements-test
 
   (let [input "let x = 5;
@@ -16,7 +15,7 @@
     (testing "program returns non-nil value" 
       (is program))
     (testing "program contains 3 statements" 
-      (is (= 3 (:statements program))))
+      (is (= 3 (count (:statements program)))))
     (let [statements (:statements program)
           identifiers ["x" "y" "foobar"]]
       (doseq [n (range (count statements))

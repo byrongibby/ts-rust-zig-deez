@@ -18,6 +18,9 @@
       (token-literal (first (:statements node)))
       "")))
 
+(defn program [statements-map]
+  (map->Program statements-map))
+
 (defrecord LetStatement [token name value]
   PNode
 
@@ -27,6 +30,9 @@
   PStatement
 
   (statement-node [_]))
+
+(defn let-statement [token]
+  (->LetStatement token nil nil))
 
 (defrecord Identifier [token value]
   PNode
@@ -38,4 +44,5 @@
 
   (expression-node [_]))
 
-
+(defn identifier [token value]
+  (->Identifier token value))
