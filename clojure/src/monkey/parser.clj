@@ -41,9 +41,18 @@
           [(append-error parser (:assign token)) nil]))
       [(append-error parser (:ident token)) nil])))
 
+(defn parse-return-stmt [parser]
+  (let [stmt (ast/return-statement (:current-token parser))
+        parser (next-token parser)]
+    [(->> (iterate next-token parser)
+          (drop-while #(not (curr-token= % (:semicolon token))))
+          first)
+     stmt]))
+
 (defn parse-stmt [parser]
   (condp = (get-in parser [:current-token :type])
     (:let token) (parse-let-stmt parser)
+    (:return token) (parse-return-stmt parser)
     [parser nil]))
 
 (defn parser [lexer]

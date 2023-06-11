@@ -46,3 +46,16 @@
 
 (defn identifier [token value]
   (->Identifier token value))
+
+(defrecord ReturnStatement [token value]
+  PNode
+  
+  (token-literal [node]
+    (get-in node [:token :literal]))
+  
+  PStatement
+  
+  (statement-node [_]))
+
+(defn return-statement [token]
+  (->ReturnStatement token nil))

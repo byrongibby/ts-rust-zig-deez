@@ -3,7 +3,7 @@
             [monkey.ast :refer [token-literal]]
             [monkey.lexer :refer [lexer]]
             [monkey.parser :refer [parser parse-program]])
-  (:import [monkey.ast LetStatement]))
+  (:import [monkey.ast LetStatement ReturnStatement]))
 
 (deftest parser-let-statements-test
 
@@ -38,3 +38,29 @@
           (testing "let statement's name's literal"
             (is (= expected-identifier
                    (token-literal (:name let-statement))))))))))
+
+(deftest parser-return-statements-test
+
+  (let [input "return 5;
+              return 10;
+              return 993322;
+              "
+        [p program] (parse-program (parser (lexer input)))]
+    (when (not= 0 (count (:errors p)))
+      (throw (ex-info (format "Parser has %d errors." (count (:errors p)))
+                      (zipmap (map #(keyword (str "parser-error-" %)) (iterate inc 1))
+                              (:errors p)))))
+    (testing "program returns non-nil value" 
+      (is program))
+    (testing "program contains 3 statements" 
+      (is (= 3 (count (:statements program)))))
+    (let [statements (:statements program)]
+      (doseq [n (range (count statements))
+              :let [return-statement (nth statements n)]]
+        (testing "let statement type"
+          (is (instance? ReturnStatement
+                         return-statement)))
+        (when (instance? ReturnStatement return-statement)
+          (testing "let statement literal"
+            (is (= "return"
+                   (token-literal return-statement)))))))))
