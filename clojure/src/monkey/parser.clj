@@ -3,7 +3,7 @@
             [monkey.lexer :as lex]
             [monkey.token :refer [token]]))
 
-(defrecord Parser [lexer current-token peek-token errors])
+(defrecord Parser [lexer current-token peek-token errors prefix-parse-fns infix-parse-fns])
 
 (defn next-token [parser]
   (let [lexer (lex/next-token (:lexer parser))]
@@ -49,14 +49,49 @@
           first)
      stmt]))
 
+(def lowest
+  {:equals 0
+   :less-greater 1
+   :sum 2
+   :product 3
+   :prefix 4
+   :call 5})
+
+(defn parse-expression [parser precedence]
+  (let [type (get-in parser [:current-token :type])
+        prefix (get-in parser [:prefix-parse-fns type])]
+    (when prefix
+      (prefix parser))))
+
+(defn parse-expression-stmt [parser]
+  (let [stmt (ast/expression-statement (:current-token parser))
+        expression (parse-expression parser lowest)]
+    [(if (peek-token= parser (:semicolon token)) (next-token parser) parser)
+     (assoc stmt :expression expression)]))
+
+(defn parse-identifier [parser]
+  (let [token (:current-token parser)]
+    (ast/identifier token (:literal token))))
+
 (defn parse-stmt [parser]
   (condp = (get-in parser [:current-token :type])
     (:let token) (parse-let-stmt parser)
     (:return token) (parse-return-stmt parser)
-    [parser nil]))
+    (parse-expression-stmt parser)))
+
+(defn prefix-parse-fn [])
+
+(defn infix-parse-fn [expression])
+
+(defn register-prefix [parser type fn]
+  (assoc-in parser [:prefix-parse-fns type] fn))
+
+(defn register-infix [parser type fn]
+  (assoc-in parser [:infix-parse-fns type] fn))
 
 (defn parser [lexer]
-  (-> (->Parser lexer nil nil [])
+  (-> (->Parser lexer nil nil [] {} {})
+      (register-prefix (:ident token) parse-identifier)
       next-token
       next-token))
 

@@ -11,6 +11,13 @@
 (defprotocol PExpression
   (expression-node [node]))
 
+(extend-protocol PNode
+  nil
+
+  (string [_])
+  
+  (token-literal [_]))
+
 (defrecord LetStatement [token name value]
   PNode
 
@@ -63,6 +70,9 @@
   PStatement
   
   (statement-node [_]))
+
+(defn expression-statement [token]
+  (->ExpressionStatement token nil))
 
 (defrecord Identifier [token value]
   PNode

@@ -3,7 +3,7 @@
             [monkey.ast :refer [token-literal]]
             [monkey.lexer :refer [lexer]]
             [monkey.parser :refer [parser parse-program]])
-  (:import [monkey.ast LetStatement ReturnStatement]))
+  (:import [monkey.ast ExpressionStatement Identifier LetStatement ReturnStatement]))
 
 (deftest parser-let-statements-test
 
@@ -64,3 +64,23 @@
           (testing "let statement literal"
             (is (= "return"
                    (token-literal return-statement)))))))))
+
+(deftest parser-identifier-expression-test
+
+  (let [input "foobar;"
+        [_ program] (parse-program (parser (lexer input)))]
+    (testing "program contains 1 statement" 
+      (is (= 1 (count (:statements program)))))
+    (let [statement (first (:statements program))]
+        (testing "statement type"
+          (is (instance? ExpressionStatement
+                         statement)))
+        (testing "expression type"
+          (is (instance? Identifier
+                         (:expression statement))))
+        (testing "identifier value"
+          (is (= "foobar"
+                 (:value (:expression statement)))))
+        (testing "identifier token literal"
+          (is (= "foobar"
+                 (token-literal (:expression statement))))))))
